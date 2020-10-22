@@ -1,0 +1,113 @@
+#include <iostream>
+using namespace std;
+
+int countOfNodes;
+
+void addNodToWay(int ** ways, int checkedNode, int lastNode ) { //Добавляет вершину в конец маршрута
+    for (int i = 0; i < countOfNodes; i++) {
+        if (ways[lastNode][i] == -1) {
+            ways[lastNode][i] = lastNode;
+            return;
+        }
+    }
+}
+
+void copyNodsToWay(int** ways, int from, int to) {//коппирует путь из вершины from в вершину to
+    for (int i = 0; i < countOfNodes; i++)
+        ways[to][i] = ways[from][i];
+}
+
+void Dijkstra(int** adjacencyMatrix, int source, int sink, int** ways) {
+    int* distant = new int[countOfNodes]; //кратчайшие расстояния от исходной точки до всех остальных
+    bool* checked = new bool[countOfNodes]; //окрашеные узлы
+    int index;
+    for (int i = 0; i < countOfNodes; i++) {
+        distant[i] = 1000;
+        checked[i] = false;
+    }
+    
+    distant[source] = 0;
+    ways[source][0] = source;
+
+
+    //    for (int count = 0; count < countOfNodes - 1; count++) //рассмотрим в худшем случае все вершины кроме текущей
+    for (int count = 0; count < countOfNodes; count++) 
+    {
+        // находим узел с минимальным значением расстояния на текущей итерации
+        int min = 1000;
+        for (int i = 0; i < countOfNodes; i++)
+            if (!checked[i] && distant[i] < min)
+            {
+                min = distant[i];
+                index = i;
+            }
+        checked[index] = true;
+
+
+        for (int i = 0; i < countOfNodes; i++) //анализируем смежные вершины, находим кратчайшее расстояние до них
+            if ((index!=i) && (distant[index] + adjacencyMatrix[index][i] < distant[i])) {
+
+ 
+                distant[i] = distant[index] + adjacencyMatrix[index][i];
+           
+                //путь до i вершины есть путь до помеченной вершины + сама вершина
+            //    ways[i] = ways[index];
+                copyNodsToWay(ways, index, i);
+                addNodToWay(ways,index,i);
+            }
+    }
+
+    
+}
+
+
+
+int main()
+{
+    setlocale(LC_ALL, "Rus");
+    cout << "Алгоритм Йена.\nВведите число вершин.\n";
+
+    cin >> countOfNodes;
+
+    cout << "Введите матрицу смежности нагруженного графа \n";
+ 
+    int** adjacencyMatrix = new int* [countOfNodes]; //матрица смежности
+    for (int i = 0; i < countOfNodes; i++)
+        adjacencyMatrix[i] = new int[countOfNodes];
+
+    int k;
+    for (int i = 0; i < countOfNodes; i++)
+        for (int j = 0; j < countOfNodes; j++) {
+            cin >> k;
+            if (k == 0)
+                adjacencyMatrix[i][j] = 1000;
+            else
+                adjacencyMatrix[i][j] = k;
+        }
+
+    cout << "Введите номер начальной вершины \n";
+    int source;
+    cin >> source;
+
+    cout << "Введите номер конечной вершины \n";
+    int sink;
+    cin >> sink;
+
+    //номер строки - номер вершины до которой ищется кратчайший путь, строка - содержание пути из номеров вершин
+    int** ways = new int* [countOfNodes];   
+    for (int i = 0; i < countOfNodes; i++)
+        ways[i] = new int[countOfNodes];
+
+    for (int i = 0; i < countOfNodes; i++)
+        for (int j = 0; j < countOfNodes; j++)
+            ways[i][j] = -1;
+
+
+    Dijkstra(adjacencyMatrix, source, sink,ways);
+    for (int i = 0; i < countOfNodes; i++)
+        if (ways[sink][i] != -1)
+            cout << ways[sink][i];
+
+    cin.get();
+    return 0;
+}
