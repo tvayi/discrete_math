@@ -175,7 +175,8 @@ int getIndexShortestPath(int** B, int**graph) { //ищем самый выгод
     for (int i = 0; i < 10000; i++) {
         if (B[i][0] == -1) //просмотрели все пути
             return index;
-
+        if (B[i][0] == -2)
+            continue;
         tekmin = findSumOfPath(B[i], graph);
         cout << "Сумма "<<i<< " пути равна " <<tekmin;
         if (tekmin < min) {
@@ -370,7 +371,7 @@ void YenKSP(int** A, int** adjacencyMatrix, int source, int sink, int** ways, in
         }
         cout << "\n";
         // находим кратчайший путь
-        indexOfShortPath = getIndexShortestPath(B,graph);
+        indexOfShortPath = getIndexShortestPath(B,adjacencyMatrix);
         cout << "Найдет кратчайший путь - его индекс" << indexOfShortPath<< "\n Содержание А : \n";
         //записываем его в A
         appendPath(B[indexOfShortPath], A);
@@ -404,11 +405,9 @@ void YenKSP(int** A, int** adjacencyMatrix, int source, int sink, int** ways, in
 int main()
 {
     setlocale(LC_ALL, "Rus");
-  //  cout << "Алгоритм Йена.\nВведите число вершин.\n";
+    cout << "Алгоритм Йена.\nВведите число вершин.\n";
 
-  //  cin >> countOfNodes;
-
-    countOfNodes = 6;
+    cin >> countOfNodes;
 
     cout << "Введите матрицу смежности нагруженного графа \n";
 
@@ -426,13 +425,13 @@ int main()
                 adjacencyMatrix[i][j] = k;
         }
 
-  //  cout << "Введите номер начальной вершины \n";
-    int source=0;
-  //  cin >> source;
+    cout << "Введите номер начальной вершины \n";
+    int source;
+    cin >> source;
 
- //   cout << "Введите номер конечной вершины \n";
-    int sink=5;
- //   cin >> sink;
+    cout << "Введите номер конечной вершины \n";
+    int sink;
+    cin >> sink;
 
     //номер строки - номер вершины до которой ищется кратчайший путь, строка - содержание пути из номеров вершин
     int** ways = new int* [countOfNodes];
