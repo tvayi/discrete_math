@@ -19,7 +19,7 @@ void copyNodsToWay(int** ways, int from, int to) {//коппирует путь 
         ways[to][i] = ways[from][i];
 }
 
-void copyNods(int** A, int rowA, int** B, int rowB) { //коппирует путь из одной матрицы в другую
+void copyNods(int** A, int rowA, int** B, int rowB) { //коппирует строку(путь) из одной матрицы в другую
     for (int i = 0; i < countOfNodes; i++) {
         A[rowA][i] = B[rowB][i];
     }
@@ -45,7 +45,7 @@ void Dijkstra(int** adjacencyMatrix, int source, int sink, int** ways) {
         // находим узел с минимальным значением расстояния на текущей итерации
         int min = 1000;
         for (int i = 0; i < countOfNodes; i++)
-            if (!checked[i] && distant[i] < min)
+            if (!checked[i] && distant[i] <= min)
             {
                 min = distant[i];
                 index = i;
@@ -69,7 +69,7 @@ void Dijkstra(int** adjacencyMatrix, int source, int sink, int** ways) {
 
 }
 
-int size(int** A, int row) {
+int size(int** A, int row) { //длинна строки (кол-во вершин в пути)
     for (int i = 0; i < countOfNodes; i++) {
         if (A[row][i] == -1)
             return i;
@@ -78,9 +78,16 @@ int size(int** A, int row) {
 }
 
 int countPath(int** A, int countRows) { //считает кол-во путей
+
+    int k = 0;
     for (int i = 0; i < countRows; i++) {
+
+        if (A[i][0] == -2) //сюда может попасть массив B
+            continue;
+
         if (A[i][0] == -1)
-            return i;
+            return k;
+        k++;
     }
     return countOfNodes;
 }
@@ -94,7 +101,7 @@ bool equalsPaths(int* rootPath, int* p, int endNode) {
 }
 
 void revomeEdge(int* p, int indNode1, int indNode2, int** graph) { //удаляет связь между вершинами node1 и node2
-    
+
     int node1 = p[indNode1];
     int node2 = p[indNode2];
 
@@ -124,14 +131,14 @@ void sumOfSet(int* totalPath, int* rootPath, int* spurPath) { //складыва
             break;
         totalPath[i] = rootPath[i];
         k++;
-        cout << totalPath[i];
+     //   cout << totalPath[i];
     }
-    cout << "k = " <<k<<"\n";
+  //  cout << "k = " << k << "\n";
     for (int i = 1; i < countOfNodes; i++) {
         if (k == countOfNodes)
             break;
         totalPath[k] = spurPath[i];
-        cout << totalPath[k];
+   //     cout << totalPath[k];
         k++;
     }
 
@@ -139,7 +146,10 @@ void sumOfSet(int* totalPath, int* rootPath, int* spurPath) { //складыва
 
 bool pathInPaths(int* totalPath, int** B) {
 
-    for (int i = 0; i < countOfNodes; i++) {
+    for (int i = 0; i < 10000; i++) {
+        if (B[i][0] == -1)
+            return false;
+
         if (equalsPaths(totalPath, B[i], countOfNodes))
             return true;
     }
@@ -159,16 +169,16 @@ void  appendPath(int* totalPath, int** B) {
 }
 
 
-int findSumOfPath(int* path, int**graph) {
+int findSumOfPath(int* path, int** adjencymatrix) {
     int sum = 0;
-    for (int i = 0; i < countOfNodes-1; i++) {
-        if (path[i+1] == -1)
+    for (int i = 0; i < countOfNodes - 1; i++) {
+        if (path[i + 1] == -1)
             return sum;
-        sum += graph[path[i]][path[i+1]];
+        sum += adjencymatrix[path[i]][path[i + 1]];
     }
     return sum;
 }
-int getIndexShortestPath(int** B, int**graph) { //ищем самый выгодный путь 
+int getIndexShortestPath(int** B, int** adjencymatrix) { //ищем самый выгодный путь 
     int min = 10000;
     int tekmin;
     int index = -1;
@@ -177,8 +187,8 @@ int getIndexShortestPath(int** B, int**graph) { //ищем самый выгод
             return index;
         if (B[i][0] == -2)
             continue;
-        tekmin = findSumOfPath(B[i], graph);
-        cout << "Сумма "<<i<< " пути равна " <<tekmin;
+        tekmin = findSumOfPath(B[i], adjencymatrix);
+    //    cout << "Сумма " << i << " пути равна " << tekmin;
         if (tekmin < min) {
             min = tekmin;
             index = i;
@@ -204,6 +214,7 @@ void YenKSP(int** A, int** adjacencyMatrix, int source, int sink, int** ways, in
 
 
     Dijkstra(adjacencyMatrix, source, sink, ways); //находим 1 кратчайший путь
+    cout << source;
     copyNods(A, 0, ways, sink); //запоминаем его в массив А
 
     int** graph = new int* [countOfNodes]; //временное состояние матрицы смежности с удаленными ребрами/узлами
@@ -239,75 +250,75 @@ void YenKSP(int** A, int** adjacencyMatrix, int source, int sink, int** ways, in
     //далее пройдемся по каждому (k-1)-ому кратчайшему пути, убирая из него ребра находя k-ый кратчайший путь
     for (int k = 1; k < K; k++)
     {
-        cout << "Находим " << k+1 << " путь \n";
+    //    cout << "Находим " << k + 1 << " путь \n";
         for (int i = 0; i < (size(A, k - 1) - 1); i++) { //рассмотрим прошлый путь, попробуем удалять из него i-ое ребро
-            cout << "Длинна прошлого пути равна " << (size(A, k - 1)) <<" Сам путь: ";
-            for (int i = 0; i < countOfNodes; i++)
-                cout << A[k - 1][i]; 
-            cout << "\n";
+    //        cout << "Длинна прошлого пути равна " << (size(A, k - 1)) << " Сам путь: ";
+    //        for (int i = 0; i < countOfNodes; i++)
+    //            cout << A[k - 1][i];
+     //       cout << "\n";
             spurNode = A[k - 1][i];
-            cout <<"I = "<<i<< " Развлетвляющяся вершина "  << (spurNode) <<"\n";
+     //       cout << "I = " << i << " Развлетвляющяся вершина " << (spurNode) << "\n";
 
 
             for (int i = 0; i < countOfNodes; i++)
                 rootPath[i] = -1;
 
-            cout << "Путь до развлетвляющейся вершнины (с ней включительно):  ";
+     //       cout << "Путь до развлетвляющейся вершнины (с ней включительно):  ";
             for (int j = 0; j <= i; j++) {//найдем путь до вершины отвлетвления
                 rootPath[j] = A[k - 1][j];
-                cout << rootPath[j];
+     //           cout << rootPath[j];
             }
-            cout << "\n";
+     //       cout << "\n";
 
             for (int j = 0; j < countPath(A, K); j++) { //теперь просмотрим все имеющийся кратчайшие пути 
-                cout << "Нашли кратчайший путь (из массива А), у которого путь до развлетвляющейся вершины совпадает. ща выпишем: \n";
-                for (int ii = 0; ii < countOfNodes; ii++) 
+      //          cout << "Нашли кратчайший путь (из массива А), у которого путь до развлетвляющейся вершины совпадает. ща выпишем: \n";
+                for (int ii = 0; ii < countOfNodes; ii++)
                 {
                     p[ii] = A[j][ii];
-                          cout << p[ii];
+       //             cout << p[ii];
                 }
-                cout << "\n";
+       //         cout << "\n";
 
 
                 if (equalsPaths(rootPath, p, i))
                 {
-                    cout << "Так, мы тут поняли шо путь из А содержит путь до нашей вершины, окей, теперь удалим связь между " << p[i] << " и " << p[i + 1] << "\n";
+       //             cout << "Так, мы тут поняли шо путь из А содержит путь до нашей вершины, окей, теперь удалим связь между " << p[i] << " и " << p[i + 1] << "\n";
                     revomeEdge(p, i, (i + 1), graph); //удаляет связь между развлетвяющейся вершины и следующей
-                    cout << "Ну вроде как удалили, предлагаю взглянуть на новое задание графа: \n\n";
-                    for (int i = 0; i < countOfNodes; i++) {
-                        for (int j = 0; j < countOfNodes; j++) {
-                            cout << graph[i][j] <<" ";
-                        }
-                        cout << "\n\n";
-                    }
+       //             cout << "Ну вроде как удалили, предлагаю взглянуть на новое задание графа: \n\n";
+        //            for (int i = 0; i < countOfNodes; i++) {
+        //                for (int j = 0; j < countOfNodes; j++) {
+        //                    cout << graph[i][j] << " ";
+        //                }
+        //                cout << "\n\n";
+         //           }
                 }
-             }
+            }
 
-            cout << "Теперь удалим все вершины до нашей развлетвляющейся.  Напомню путь \n";
+        //    cout << "Теперь удалим все вершины до нашей развлетвляющейся.  Напомню путь \n";
 
-            for (int i=0; i<countOfNodes;i++)
-                cout << rootPath[i];
-            cout << "\n";
+        //    for (int i = 0; i < countOfNodes; i++)
+        //        cout << rootPath[i];
+        //    cout << "\n";
             removeRootPathNode(graph, rootPath, spurNode); //чистит пусть от развлетвляющейся вершины.
 
-            cout << "Окей, удалили, теперь смотри новую матрицу \n\n";
+        //    cout << "Окей, удалили, теперь смотри новую матрицу \n\n";
 
-            for (int i = 0; i < countOfNodes; i++)
-            {
-                for (int j = 0; j < countOfNodes; j++)
-                    cout << graph[i][j]<<" ";
-                cout << "\n";
-            }
-            cout << "\n";
+        //    for (int i = 0; i < countOfNodes; i++)
+        //    {
+        //        for (int j = 0; j < countOfNodes; j++)
+        //            cout << graph[i][j] << " ";
+        //        cout << "\n";
+       //     }
+        //    cout << "\n";
 
             for (int i = 0; i < countOfNodes; i++)
                 for (int j = 0; j < countOfNodes; j++)
                     ways[i][j] = -1;
 
-
+            cout << spurNode;
             Dijkstra(graph, spurNode, sink, ways); //находим новый путь от вершины
-            cout << "Так, нашли теперь кратчайший путь с текущей комбинацией ребер, от " <<  spurNode << " до " << sink <<"\n";
-            for (int i= 0; i < countOfNodes; i++)
+            cout << "Так, нашли теперь кратчайший путь с текущей комбинацией ребер, от " << spurNode << " до " << sink << "\n";
+            for (int i = 0; i < countOfNodes; i++)
                 cout << ways[sink][i] << " ";
 
             cout << "\n";
@@ -318,42 +329,41 @@ void YenKSP(int** A, int** adjacencyMatrix, int source, int sink, int** ways, in
 
 
             sumOfSet(totalPath, rootPath, ways[sink]); //объединяем путь до вершины и новый путь от вершины
-            cout << "Объеденили путь до вершины и от неё \n";
-            for (int i = 0; i < countOfNodes; i++)
-                cout << totalPath[i]<<" ";
-            cout << "\n";
+         //   cout << "Объеденили путь до вершины и от неё \n";
+         //   for (int i = 0; i < countOfNodes; i++)
+         //       cout << totalPath[i] << " ";
+         //   cout << "\n";
 
 
 
 
 
             if (not pathInPaths(totalPath, B)) { //помещаем в список потенциальных путей
-                cout << "Данный путя нету, добавляем в В \n";
                 appendPath(totalPath, B);
             }
             cout << "Содержание В \n";
-            for (int i = 0; i < 10000; i++) {
+           for (int i = 0; i < 10000; i++) {
                 if (B[i][0] == -1)
                     break;
                 for (int j = 0; j < countOfNodes; j++) {
-                    
-                    cout << B[i][j] <<" ";
+
+                    cout << B[i][j] << " ";
                 }
                 cout << "\n";
             }
 
-            cout << "Ок, теперь восстановим матрицу смежности т.е: \n";
+        //    cout << "Ок, теперь восстановим матрицу смежности т.е: \n";
             for (int i = 0; i < countOfNodes; i++) { //восстанавливаем вспомогательную матрицу смежности
                 graph[i] = new int[countOfNodes];
                 for (int j = 0; j < countOfNodes; j++) {
                     graph[i][j] = adjacencyMatrix[i][j];
-                    cout << graph[i][j] << " ";
+        //            cout << graph[i][j] << " ";
                 }
-                cout << "\n";
+        //        cout << "\n";
             }
         }
 
-        cout << "\n";
+  //      cout << "\n";
         if (countPath(B, 10000) == 0) {
             cout << "B is empty";
             break;
@@ -371,8 +381,8 @@ void YenKSP(int** A, int** adjacencyMatrix, int source, int sink, int** ways, in
         }
         cout << "\n";
         // находим кратчайший путь
-        indexOfShortPath = getIndexShortestPath(B,adjacencyMatrix);
-        cout << "Найдет кратчайший путь - его индекс" << indexOfShortPath<< "\n Содержание А : \n";
+        indexOfShortPath = getIndexShortestPath(B, adjacencyMatrix);
+        cout << "Найдет кратчайший путь - его индекс" << indexOfShortPath << "\n Содержание А : \n";
         //записываем его в A
         appendPath(B[indexOfShortPath], A);
         for (int i = 0; i < K; i++) {
@@ -463,9 +473,9 @@ int main()
         cout << i << " ||";
         for (int j = 0; j < countOfNodes; j++) {
             if (A[i][j] != -1)
-            cout << A[i][j];
+                cout << A[i][j];
         }
-        cout << "\n";
+        cout << " " << findSumOfPath(A[i], adjacencyMatrix) << "\n";
     }
     /// //////////////
 
