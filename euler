@@ -1,8 +1,8 @@
 def find_eulerian_path(graph):
-    stack = [];
+    stack = []; 
     path = []
  
-    stack.append(graph[0][0])
+    stack.append(graph[0][0]) 
     count = 0
     
     while len(stack) > 0:
@@ -11,7 +11,7 @@ def find_eulerian_path(graph):
         v = stack[len(stack) - 1]
         
         print(v)
-        degree = get_degree(v, graph)
+        degree = get_d(v, graph)
  
         if degree == 0:
             print("Добавляем в список")
@@ -39,7 +39,7 @@ def find_eulerian_path_oriented(graph):
         v = stack[len(stack) - 1]
         
         print(v)
-        degree = get_degree(v, graph)
+        degree = get_d(v, graph)
  
         if degree == 0:
             print("Добавляем в список")
@@ -51,10 +51,11 @@ def find_eulerian_path_oriented(graph):
             graph.pop(index)
             stack.append(edge[1])
             count+=1
+        
     return path
  
- 
-def get_degree(v, graph):
+
+def get_d(v, graph):  #Получить степень вершины 
     degree = 0
     for (x, y) in graph:
         if v == x or v == y:
@@ -63,7 +64,7 @@ def get_degree(v, graph):
     return degree
  
  
-def get_edge_and_index(v, graph):
+def get_edge_and_index(v, graph): #Получить узел и его индекс
     edge = ();
     index = -1
  
@@ -84,9 +85,14 @@ def get_edge_and_index_oriented(v, graph):
     return index, edge
  
  
-graph = [(1, 2), (2, 3), (3, 4), (4, 5), (5, 6), 
-(3, 6), (2, 6), (4, 6), (3, 5), (2, 4), (1, 5)]
+graph_oriented = [(2, 1), (1, 3), (2 , 5), (3, 7), (3, 2), (4, 2),
+(5, 4), (5, 8), (6, 3), (6, 5), (7,6), (8,6)]
 
-graph_oriented = [(1, 2), (2, 3), (3, 1)]
- 
-print(find_eulerian_path_oriented(graph_oriented))
+path_o = find_eulerian_path_oriented(graph_oriented)
+reversed_path = path_o[::-1]
+print(reversed_path)
+
+graph = [(1, 2), (1, 3), (1, 4), (1, 6), (2, 4), (2, 3), (2, 5),
+(3, 4), (3, 5), (4, 5), (5, 6)]
+path = find_eulerian_path(graph)
+print(path)
