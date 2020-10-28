@@ -473,7 +473,7 @@ int main()
         cout << i << " ||";
         for (int j = 0; j < countOfNodes; j++) {
             if (A[i][j] != -1)
-                cout << A[i][j];
+                cout << A[i][j]+1;
         }
         cout << " " << findSumOfPath(A[i], adjacencyMatrix) << "\n";
     }
