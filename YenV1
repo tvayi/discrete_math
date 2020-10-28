@@ -1,0 +1,383 @@
+
+#include <iostream>
+using namespace std;
+
+int countOfNodes;
+int K;
+
+void addNodToWay(int** ways, int checkedNode, int lastNode) { //Добавляет вершину в конец маршрута
+    for (int i = 0; i < countOfNodes; i++) {
+        if (ways[lastNode][i] == -1) {
+            ways[lastNode][i] = lastNode;
+            return;
+        }
+    }
+}
+
+void copyNodsToWay(int** ways, int from, int to) {//коппирует путь из вершины from в вершину to
+    for (int i = 0; i < countOfNodes; i++)
+        ways[to][i] = ways[from][i];
+}
+
+void copyNods(int** A, int rowA, int** B, int rowB) { //коппирует строку(путь) из одной матрицы в другую
+    for (int i = 0; i < countOfNodes; i++) {
+        A[rowA][i] = B[rowB][i];
+    }
+}
+
+
+void Dijkstra(int** adjacencyMatrix, int source, int sink, int** ways) {
+    int* distant = new int[countOfNodes]; //кратчайшие расстояния от исходной точки до всех остальных
+    bool* checked = new bool[countOfNodes]; //окрашеные узлы
+    int index;
+    for (int i = 0; i < countOfNodes; i++) {
+        distant[i] = 1000;
+        checked[i] = false;
+    }
+
+    distant[source] = 0;
+    ways[source][0] = source;
+
+
+    //рассмотрим в худшем случае все вершины кроме текущей
+    for (int count = 0; count < countOfNodes; count++)
+    {
+        // находим узел с минимальным значением расстояния на текущей итерации
+        int min = 1000;
+        for (int i = 0; i < countOfNodes; i++)
+            if (!checked[i] && distant[i] <= min)
+            {
+                min = distant[i];
+                index = i;
+            }
+        checked[index] = true;
+
+
+        for (int i = 0; i < countOfNodes; i++) //анализируем смежные вершины, находим кратчайшее расстояние до них
+            if ((index != i) && (distant[index] + adjacencyMatrix[index][i] < distant[i])) {
+                distant[i] = distant[index] + adjacencyMatrix[index][i];
+                //путь до i вершины есть путь до помеченной вершины + сама вершина
+                copyNodsToWay(ways, index, i);
+                addNodToWay(ways, index, i);
+            }
+    }
+}
+
+int size(int** A, int row) { //длинна строки (кол-во вершин в пути)
+    for (int i = 0; i < countOfNodes; i++) {
+        if ((A[row][i] == -1) or (A[row][i] == -2))
+            return i;
+    }
+    return countOfNodes;
+}
+
+int countPath(int** A, int countRows) { //считает кол-во путей
+
+    int k = 0;
+    for (int i = 0; i < countRows; i++) {
+
+        if (A[i][0] == -2) //сюда может попасть массив B он пустой, но это не конец списка путей
+            continue;
+
+        if (A[i][0] == -1) //а вот это 100% конец списка, путей больше нет
+            return k;
+
+        k++;
+    }
+    return countOfNodes; //если массив полный
+}
+
+//смотрит равны ли пути
+//(нужен для исключения дублей в В, для выявления необходимости удаления связей между вершинами)
+
+bool equalsPaths(int* totalPath, int* p, int indexEndNode) { 
+
+    for (int i = 0; i <= indexEndNode; i++) { //indexEndNode - исключает возникновение -1 в одном пути и -2 в другом 
+        if (totalPath[i] != p[i]) {
+            //на всякий ещё раз проверим, т.к. indexEndmode иногда = кол-ву вершин ( случая когда путь rootPath пусть - нет)
+            if (totalPath[i] == -1 and p[i] == -2) {  //случая когда p[i] = -2 (для всех i)  - нет
+                return true;
+            }
+            else
+                return false;
+
+        }
+    }
+    return true;
+}
+
+void revomeEdge(int* path, int indexNode1, int indexNode2, int** graph) { //удаляет связь между вершинами node1 и node2 
+
+    //т.к. нам даются индексы номеров вершин в пути path, необходимо из них найти сами вершины
+    int node1 = path[indexNode1];
+    int node2 = path[indexNode2];
+
+    graph[node1][node2] = 1000;
+    graph[node2][node1] = 1000;
+}
+void removeRootPathNode(int** graph, int* rootPath, int spurNode) { //чистит пусть от развлетвляющейся вершины во временном графе
+    int tekNode;
+
+    for (int i = 0; i < countOfNodes; i++) {
+        if (rootPath[i] == spurNode)
+            return;
+        tekNode = rootPath[i];
+        for (int j = 0; j < countOfNodes; j++) {
+            graph[tekNode][j] = 1000;
+            graph[j][tekNode] = 1000;
+        }
+    }
+}
+
+void sumOfSet(int* totalPath, int* rootPath, int* spurPath) { //складываем пути
+    int k = 0;
+    for (int i = 0; i < countOfNodes; i++) {
+        if (rootPath[i] == -1)
+            break;
+        totalPath[i] = rootPath[i];
+        k++;
+    }
+    for (int i = 1; i < countOfNodes; i++) {
+        if (k == countOfNodes)
+            break;
+        totalPath[k] = spurPath[i];
+        k++;
+    }
+
+}
+
+bool pathInPaths(int* totalPath, int** B) { //проверяет есть ли путь в списке путей
+
+    for (int i = 0; i < 10000; i++) {
+        if (B[i][0] == -1) //дошли до конца
+            return false;
+        if (B[i][0] == -2) // попали в пустое место (но оно не конечное)
+            continue;
+
+        if (equalsPaths(totalPath, B[i], countOfNodes-1))
+            return true;
+    }
+    return false;
+
+}
+
+
+void  appendPath(int* totalPath, int** B) {
+    for (int i = 0; i < 10000; i++)
+        if ((B[i][0] == -1) or (B[i][0] == -2)) { // нашли пустое место
+            for (int j = 0; j < countOfNodes; j++) { //добавили
+                B[i][j] = totalPath[j];
+            }
+            break;
+        }
+}
+
+
+int findSumOfPath(int* path, int** adjencymatrix) {
+    int sum = 0;
+    for (int i = 0; i < countOfNodes - 1; i++) {
+        if (path[i + 1] == -1)
+            return sum;
+        sum += adjencymatrix[path[i]][path[i + 1]];
+    }
+    return sum;
+}
+int getIndexShortestPath(int** B, int** adjencymatrix) { //ищем индекс самого выгодного пути в массиве потенциальных путей
+    int min = 10000;
+    int tekmin;
+    int index = -1;
+    for (int i = 0; i < 10000; i++) {
+        if (B[i][0] == -1) //просмотрели все пути
+            return index;
+        if (B[i][0] == -2)
+            continue;
+        tekmin = findSumOfPath(B[i], adjencymatrix);
+   
+        if (tekmin < min) {
+            min = tekmin;
+            index = i;
+        }
+
+    }
+    return index;
+}
+
+void  deletePath(int index, int** B) { //удаляет путь с индексом index из массива путей B
+
+    for (int i = 0; i < countOfNodes; i++) {
+        B[index][i] = -2;
+    }
+
+}
+
+
+
+void YenKSP(int** A, int** adjacencyMatrix, int source, int sink, int** ways, int K) {
+
+    int indexOfShortPath;
+
+
+    Dijkstra(adjacencyMatrix, source, sink, ways); //находим 1 кратчайший путь
+    copyNods(A, 0, ways, sink); //запоминаем его в массив А
+
+    int** graph = new int* [countOfNodes]; //временное состояние матрицы смежности с удаленными ребрами/узлами
+    for (int i = 0; i < countOfNodes; i++) {
+        graph[i] = new int[countOfNodes];
+        for (int j = 0; j < countOfNodes; j++) {
+            graph[i][j] = adjacencyMatrix[i][j];
+        }
+    }
+
+
+    int spurNode; //узел из которого будем искать новые пути (отвлетвления)
+    int* rootPath = new int[countOfNodes]; //путь до узла
+    int* p = new int[countOfNodes]; //вспомогательный массив
+    int* totalPath = new int[countOfNodes]; //сумма путей до развлетляющегося узла и до конечной вершины
+    int* shortestPath = new int[countOfNodes]; //хранит кратчайший путь в массиве потенциальных путей B
+    //инициализация
+    for (int i = 0; i < countOfNodes; i++) {
+        rootPath[i] = -1;
+        p[i] = -1;
+        totalPath[i] = -1;
+        shortestPath[i] = -1;
+    }
+
+    int** B = new int* [10000]; //Содержат потенциальные пути
+    for (int i = 0; i < 10000; i++) {
+        B[i] = new int[countOfNodes];
+        for (int j = 0; j < countOfNodes; j++) {
+            B[i][j] = -1;
+        }
+    }
+
+    //далее пройдемся по каждому (k-1)-ому кратчайшему пути, убирая из него ребра находя k-ый кратчайший путь
+    for (int k = 1; k < K; k++)
+    {
+        for (int i = 0; i < (size(A, (k - 1)) - 1); i++) { //рассмотрим прошлый путь, (последняя вершина не рассматривается
+            for (int i = 0; i < countOfNodes; i++) { //восстанавливаем вспомогательную матрицу смежности
+                graph[i] = new int[countOfNodes];
+                for (int j = 0; j < countOfNodes; j++) {
+                    graph[i][j] = adjacencyMatrix[i][j];
+                }
+            }
+
+            spurNode = A[k - 1][i];
+
+            for (int i = 0; i < countOfNodes; i++)
+                rootPath[i] = -1;
+
+            for (int j = 0; j <= i; j++) {//запишем путь до вершины отвлетвления
+                rootPath[j] = A[k - 1][j];
+            }
+
+            for (int j = 0; j < countPath(A, K); j++)  //теперь просмотрим все имеющийся кратчайшие пути чтобы удалить следующую вершину             
+                if (equalsPaths(rootPath, A[j], i)) //если пути до развл.вершины совпадают/ в функцию передается индекс последней вершины
+                    revomeEdge(A[j], i, (i+1), graph); //удаляет связь между развлетвяющейся вершиной и следующей              
+            
+            removeRootPathNode(graph, rootPath, spurNode); //чистит пусть до развлетвляющейся вершины.
+
+            //инициализация
+            for (int i = 0; i < countOfNodes; i++)
+                for (int j = 0; j < countOfNodes; j++)
+                    ways[i][j] = -1;
+
+            Dijkstra(graph, spurNode, sink, ways); //находим новый путь от вершины
+
+            if (ways[sink][0] == -1) {//если пути от развлетвляющейся вершины до конечной нет, выходим
+                continue;
+            }
+
+            sumOfSet(totalPath, rootPath, ways[sink]); //объединяем путь до вершины и новый путь от вершины
+
+            if (not pathInPaths(totalPath, B)) //помещаем в список потенциальных путей
+                appendPath(totalPath, B);
+            
+        }
+
+        if (countPath(B, 10000) == 0) { //если не нашли ни один путь
+            continue;
+        }
+
+        // находим кратчайший путь
+        indexOfShortPath = getIndexShortestPath(B, adjacencyMatrix);
+        //записываем его в A
+        appendPath(B[indexOfShortPath], A);
+       
+        //удаляем кратчайший путь из нашего  массива потенциальных путей
+        deletePath(indexOfShortPath, B);
+    }
+
+}
+
+
+
+int main()
+{
+    setlocale(LC_ALL, "Rus");
+    cout << "Алгоритм Йена.\nВведите число вершин.\n";
+
+    cin >> countOfNodes;
+
+    cout << "Введите матрицу смежности нагруженного графа \n";
+
+    int** adjacencyMatrix = new int* [countOfNodes]; //матрица смежности
+    for (int i = 0; i < countOfNodes; i++)
+        adjacencyMatrix[i] = new int[countOfNodes];
+
+    int k;
+    for (int i = 0; i < countOfNodes; i++)
+        for (int j = 0; j < countOfNodes; j++) {
+            cin >> k;
+            if (k == 0)
+                adjacencyMatrix[i][j] = 1000;
+            else
+                adjacencyMatrix[i][j] = k;
+        }
+
+    cout << "Введите номер начальной вершины \n";
+    int source;
+    cin >> source;
+
+    cout << "Введите номер конечной вершины \n";
+    int sink;
+    cin >> sink;
+
+    //номер строки - номер вершины до которой ищется кратчайший путь, строка - содержание пути из номеров вершин
+    int** ways = new int* [countOfNodes];
+    for (int i = 0; i < countOfNodes; i++)
+        ways[i] = new int[countOfNodes];
+
+    for (int i = 0; i < countOfNodes; i++)
+        for (int j = 0; j < countOfNodes; j++)
+            ways[i][j] = -1;
+
+
+    cout << "Введите количество кратчайших путей \n";
+    cin >> K;
+
+
+    int** A = new int* [K];
+    for (int i = 0; i < K; i++)
+        A[i] = new int[countOfNodes];
+    for (int i = 0; i < K; i++)
+        for (int j = 0; j < countOfNodes; j++)
+            A[i][j] = -1;
+
+    ////////////////////
+
+    YenKSP(A, adjacencyMatrix, source, sink, ways, K);
+
+    cout << "Вывод кратчайших путей \n";
+    for (int i = 0; i < K; i++) {
+        cout << i << " ||";
+        for (int j = 0; j < countOfNodes; j++) {
+            if (A[i][j] != -1)
+                cout << A[i][j]+1;
+        }
+        cout << " " << findSumOfPath(A[i], adjacencyMatrix) << "\n";
+    }
+    /// //////////////
+
+    cin.get();
+    return 0;
+}
