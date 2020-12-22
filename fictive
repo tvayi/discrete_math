@@ -1,0 +1,37 @@
+NUM = 0
+PEREM = 0
+
+def compare(f, counter, n):
+    i = 0
+    while (counter < n):
+        counter += 1
+        if (len(f) != 1):
+            i += 1
+            if (f[0:len(f)//2] == f[len(f)//2:]):
+                global PEREM
+                global NUM
+                PEREM = counter
+                NUM += 1
+            else:
+                compare(f[:len(f)//2], counter, n)
+                compare(f[len(f)//2:], counter, n)
+
+    return 0
+                
+
+print("Введите число переменных")
+n = int(input()) #количество переменных 
+f = [] # таблица значний функции n переменных
+for i in range(2**n):
+    print("Введите значение функции")
+    a = int(input())
+    f.append(a)
+counter = 0
+print(len(f))
+compare(f, counter, n)
+print(PEREM, NUM)
+if NUM == 2**(PEREM-1):
+    print('Переменная ', PEREM, ' фиктивная') 
+else:
+    print('Нет фиктивных переменных')
+
