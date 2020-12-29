@@ -1,0 +1,117 @@
+def makeVector():
+    '''
+    Функция создает вектор согласно пользовательскому ввводу
+    '''
+    print('Введите вектор строкой')
+    string = input()
+    vector = []
+    for i in range(0, len(string)):
+        if (string[i]=='1'):
+            vector.append(1)
+        elif (string[i]=='0'):
+            vector.append(0)
+        elif (string[i]=='-'):
+            vector.append(-1)
+    return vector
+
+def detectAbsorb(main, suspected):
+    '''
+    Проверяем, поглощается ли вектор suspected вектором main
+    '''
+    for i in range(0, len(main)):
+        if ((main[i] != suspected[i]) and (main[i] != -1)):
+            return False
+    return True
+
+
+def detectCommicating(first, second):
+    '''
+    Алгоритм требует, чтоб векторы различались лишь по одной компоненте
+    '''
+    doCommunicate = False 
+    for i in range(0, len(first)):
+        if first[i]==-1 or second[i]==-1:
+            continue 
+        if first[i] != second[i]:
+            if doCommunicate == True:
+                return False
+            doCommunicate = True
+    return doCommunicate
+
+def deleteAbsorb(mass):
+    '''
+    Удаляем поглощение 
+    '''
+    for i in range(len(mass)):
+        for j in range(len(mass)):
+            if (detectAbsorb(mass[i], mass[j]) and (mass[i] != mass[j])):
+                mass.pop(j)
+                return mass
+    return mass
+
+def clueVectors(suspected, main):
+    '''
+    Обобщенно склеивает 2 вектора
+    '''
+    vec = []
+    for i in range(len(main)):
+        if (main[i] ==  1 and suspected[i] == 0) or (main[i] == 0 and suspected[i] == 1):
+            vec.append(-1)
+        else:
+            vec.append(main[i])
+    return vec
+
+def deleteVecConsumed(mass, vec):
+    '''
+    Удаляет новый вектор если его поглощают уже существующие
+    '''
+    for i in range(len(mass)-1):
+        if detectAbsorb(mass[i], vec):
+            mass = mass[:-1]
+            i = 0
+    return mass
+
+def deleteConsumedByVec(mass, vec):
+    '''
+    Удаляет вектор, поглощаемый новым
+    '''
+    for i in range(len(mass)-1):
+        if detectAbsorb(vec, mass[i]):
+            print('i равно ', i, ' Удаляем', mass[i])
+            mass.pop(i)
+            return mass
+    return mass
+
+
+k = -1
+
+#Шаг 1 
+print("Введите количество дизъюнкицй")
+listOfDisj = []
+num = int(input())
+for i in range(num):
+    vector = makeVector()
+    listOfDisj.append(vector)
+
+listOfDisj = deleteAbsorb(listOfDisj)
+print(listOfDisj)
+
+while (k < len(listOfDisj)-1): #Шаги 2-5
+    k += 1
+    print('k равно', k)
+    for i in range(0, k):
+        if detectCommicating(listOfDisj[i], listOfDisj[k]): #Шаг 2
+            print(listOfDisj[i], listOfDisj[k])
+            vec = clueVectors(listOfDisj[i], listOfDisj[k])
+            listOfDisj.append(vec)
+            print('Склеены и добавлены')
+            print(listOfDisj)
+            listOfDisj = deleteVecConsumed(listOfDisj, vec) #Шаг 3 
+            for i in range(len(listOfDisj)):
+                listOfDisj = deleteConsumedByVec(listOfDisj, vec)
+            print(listOfDisj)
+            
+        else: 
+            print(listOfDisj[i], listOfDisj[k], ' не смежны')
+
+print('ДНФ равно' , listOfDisj)
