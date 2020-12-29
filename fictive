@@ -27,11 +27,8 @@ for i in range(2**n):
     a = int(input())
     f.append(a)
 counter = 0
-print(len(f))
 compare(f, counter, n)
-print(PEREM, NUM)
 if NUM == 2**(PEREM-1):
     print('Переменная ', PEREM, ' фиктивная') 
 else:
     print('Нет фиктивных переменных')
-
